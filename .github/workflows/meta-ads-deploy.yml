@@ -1,0 +1,44 @@
+name: Deploy Meta Ads Job
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "jobs/meta-ads/**"
+      - ".github/workflows/meta-ads-deploy.yml"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+          service_account: github-deployer@gcp-test-504808.iam.gserviceaccount.com
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Deploy Cloud Run Job
+        working-directory: jobs/meta-ads
+        run: |
+          gcloud run jobs deploy meta-ads-job \
+            --source . \
+            --region asia-northeast1 \
+            --project gcp-test-504808 \
+            --service-account meta-ads-job@gcp-test-504808.iam.gserviceaccount.com \
+            --set-secrets "FB_ACCESS_TOKEN=meta-ads-access-token:latest" \
+            --set-env-vars "FB_TOKEN_SOURCE_ID=lab,GCP_PROJECT_ID=gcp-test-504808,BQ_DATASET=raw_meta_ads" \
+            --memory 2Gi \
+            --task-timeout 1800s \
+            --max-retries 0
