@@ -12,6 +12,13 @@ permissions:
   contents: read
   id-token: write
 
+env:
+  PROJECT_ID: gcp-test-504808
+  REGION: asia-northeast1
+  REPOSITORY: platform-jobs
+  IMAGE_NAME: meta-ads
+  JOB_NAME: meta-ads-job
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -29,16 +36,21 @@ jobs:
       - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@v3
 
-      - name: Deploy Cloud Run Job
+      - name: Build and push image
         working-directory: jobs/meta-ads
         run: |
-          gcloud run jobs deploy meta-ads-job \
-            --source . \
-            --region asia-northeast1 \
-            --project gcp-test-504808 \
-            --service-account meta-ads-job@gcp-test-504808.iam.gserviceaccount.com \
-            --set-secrets "FB_ACCESS_TOKEN=meta-ads-access-token:latest" \
-            --set-env-vars "FB_TOKEN_SOURCE_ID=lab,GCP_PROJECT_ID=gcp-test-504808,BQ_DATASET=raw_meta_ads" \
-            --memory 2Gi \
-            --task-timeout 1800s \
-            --max-retries 0
+          IMAGE_URI="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/${IMAGE_NAME}:${GITHUB_SHA}"
+
+          echo "IMAGE_URI=${IMAGE_URI}" >> "${GITHUB_ENV}"
+
+          gcloud builds submit . \
+            --project="${PROJECT_ID}" \
+            --region="${REGION}" \
+            --tag="${IMAGE_URI}"
+
+      - name: Update Cloud Run Job image
+        run: |
+          gcloud run jobs update "${JOB_NAME}" \
+            --project="${PROJECT_ID}" \
+            --region="${REGION}" \
+            --image="${IMAGE_URI}"
