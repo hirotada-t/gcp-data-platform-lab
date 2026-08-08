@@ -46,7 +46,8 @@ jobs:
           gcloud builds submit . \
             --project="${PROJECT_ID}" \
             --region="${REGION}" \
-            --tag="${IMAGE_URI}"
+            --tag="${IMAGE_URI}" \
+            --suppress-logs
 
       - name: Update Cloud Run Job image
         run: |
