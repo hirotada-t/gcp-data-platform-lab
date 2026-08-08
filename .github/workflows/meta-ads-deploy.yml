@@ -39,15 +39,41 @@ jobs:
       - name: Build and push image
         working-directory: jobs/meta-ads
         run: |
+          set -euo pipefail
           IMAGE_URI="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/${IMAGE_NAME}:${GITHUB_SHA}"
 
           echo "IMAGE_URI=${IMAGE_URI}" >> "${GITHUB_ENV}"
 
-          gcloud builds submit . \
+          BUILD_ID=$(gcloud builds submit . \
             --project="${PROJECT_ID}" \
             --region="${REGION}" \
             --tag="${IMAGE_URI}" \
-            --suppress-logs
+            --async \
+            --format="value(id)")
+
+          echo "Cloud Build ID: ${BUILD_ID}"
+
+          while true; do
+            STATUS=$(gcloud builds describe "${BUILD_ID}" \
+              --project="${PROJECT_ID}" \
+              --region="${REGION}" \
+              --format="value(status)")
+
+            echo "Build status: ${STATUS}"
+
+            case "${STATUS}" in
+              SUCCESS)
+                break
+                ;;
+              FAILURE|INTERNAL_ERROR|TIMEOUT|CANCELLED|EXPIRED)
+                echo "Cloud Build failed: ${STATUS}"
+                exit 1
+                ;;
+              *)
+                sleep 5
+                ;;
+            esac
+          done
 
       - name: Update Cloud Run Job image
         run: |
