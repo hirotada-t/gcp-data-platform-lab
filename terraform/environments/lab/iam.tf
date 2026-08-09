@@ -1,7 +1,3 @@
-data "google_project" "current" {
-  project_id = "gcp-test-504808"
-}
-
 resource "google_iam_workload_identity_pool" "github" {
   workload_identity_pool_id = "github-pool"
   display_name              = "GitHub Actions Pool"
