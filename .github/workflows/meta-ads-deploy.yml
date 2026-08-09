@@ -20,6 +20,7 @@ env:
   REPOSITORY: platform-jobs
   IMAGE_NAME: meta-ads
   JOB_NAME: meta-ads-job
+  BUILD_SERVICE_ACCOUNT: cloud-build-meta-ads@gcp-test-504808.iam.gserviceaccount.com
 
 jobs:
   deploy:
@@ -50,6 +51,8 @@ jobs:
             --project="${PROJECT_ID}" \
             --region="${REGION}" \
             --tag="${IMAGE_URI}" \
+            --service-account="projects/${PROJECT_ID}/serviceAccounts/${BUILD_SERVICE_ACCOUNT}" \
+            --gcs-log-dir="gs://${PROJECT_ID}_cloudbuild/logs" \
             --async \
             --format="value(id)")
 

@@ -3,7 +3,6 @@ locals {
   project_number = "18325870326"
 
   terraform_deployer_email = "terraform-deployer@gcp-test-504808.iam.gserviceaccount.com"
-  build_service_account    = "18325870326-compute@developer.gserviceaccount.com"
 
   github_repository_id = "1326491907"
 
@@ -63,9 +62,9 @@ resource "google_service_account_iam_member" "github_deployer_act_as_meta_ads" {
   member = "serviceAccount:${google_service_account.github_deployer.email}"
 }
 
-# github-deployer → Cloud Build SA
+# github-deployer → 専用Cloud Build SA
 resource "google_service_account_iam_member" "github_deployer_act_as_build" {
-  service_account_id = "projects/${local.project_id}/serviceAccounts/${local.build_service_account}"
+  service_account_id = google_service_account.cloud_build_meta_ads.name
 
   role   = "roles/iam.serviceAccountUser"
   member = "serviceAccount:${google_service_account.github_deployer.email}"
@@ -95,3 +94,26 @@ resource "google_bigquery_dataset_iam_member" "meta_ads_data_editor" {
   role   = "roles/bigquery.dataEditor"
   member = "serviceAccount:${google_service_account.meta_ads_job.email}"
 }
+
+# Cloud Build SA → Artifact RegistryへImageをpush
+resource "google_artifact_registry_repository_iam_member" "cloud_build_meta_ads_writer" {
+  project    = local.project_id
+  location   = google_artifact_registry_repository.app_images.location
+  repository = google_artifact_registry_repository.app_images.repository_id
+
+  role   = "roles/artifactregistry.writer"
+  member = "serviceAccount:${google_service_account.cloud_build_meta_ads.email}"
+}
+
+# Cloud Build SA → source取得・build log保存
+resource "google_storage_bucket_iam_member" "cloud_build_meta_ads_storage" {
+  for_each = toset([
+    "roles/storage.bucketViewer",
+    "roles/storage.objectUser",
+  ])
+
+  bucket = local.cloud_build_source_bucket
+  role   = each.value
+  member = "serviceAccount:${google_service_account.cloud_build_meta_ads.email}"
+}
+
