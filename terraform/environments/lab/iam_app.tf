@@ -15,7 +15,6 @@ locals {
 # GitHub ActionsがCloud Buildへソースをアップロードするための権限
 resource "google_storage_bucket_iam_member" "github_deployer_build_source" {
   for_each = toset([
-    "roles/storage.bucketViewer",
     "roles/storage.objectUser",
   ])
 
@@ -30,6 +29,7 @@ resource "google_project_iam_member" "github_deployer_project_roles" {
     "roles/cloudbuild.builds.editor",
     "roles/run.developer",
     "roles/serviceusage.serviceUsageConsumer",
+    "roles/storage.bucketViewer",
   ])
 
   project = local.project_id
