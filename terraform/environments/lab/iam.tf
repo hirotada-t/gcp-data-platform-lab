@@ -9,12 +9,15 @@ resource "google_iam_workload_identity_pool_provider" "github" {
   display_name                       = "GitHub Provider"
 
   attribute_mapping = {
-    "google.subject"             = "assertion.sub"
-    "attribute.repository"       = "assertion.repository"
-    "attribute.repository_owner" = "assertion.repository_owner"
+    "google.subject"                = "assertion.sub"
+    "attribute.repository"          = "assertion.repository"
+    "attribute.repository_id"       = "assertion.repository_id"
+    "attribute.repository_owner"    = "assertion.repository_owner"
+    "attribute.repository_owner_id" = "assertion.repository_owner_id"
+    "attribute.ref"                 = "assertion.ref"
   }
 
-  attribute_condition = "assertion.repository == 'hirotada-t/gcp-data-platform-lab'"
+  attribute_condition = "assertion.repository_id == '1326491907' && assertion.repository_owner_id == '68522105' && assertion.ref == 'refs/heads/main'"
 
   oidc {
     issuer_uri = "https://token.actions.githubusercontent.com"
