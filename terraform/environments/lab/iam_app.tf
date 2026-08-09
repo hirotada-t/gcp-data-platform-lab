@@ -8,6 +8,20 @@ locals {
   github_repository_id = "1326491907"
 
   github_repository_principal = "principalSet://iam.googleapis.com/projects/18325870326/locations/global/workloadIdentityPools/github-pool/attribute.repository_id/1326491907"
+
+  cloud_build_source_bucket = "gcp-test-504808_cloudbuild"
+}
+
+# GitHub ActionsがCloud Buildへソースをアップロードするための権限
+resource "google_storage_bucket_iam_member" "github_deployer_build_source" {
+  for_each = toset([
+    "roles/storage.bucketViewer",
+    "roles/storage.objectUser",
+  ])
+
+  bucket = local.cloud_build_source_bucket
+  role   = each.value
+  member = "serviceAccount:${google_service_account.github_deployer.email}"
 }
 
 # GitHub Actions アプリデプロイ担当のProject権限
