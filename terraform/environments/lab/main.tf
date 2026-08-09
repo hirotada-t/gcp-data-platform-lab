@@ -26,6 +26,6 @@ resource "google_secret_manager_secret" "meta_ads_access_token" {
 resource "google_artifact_registry_repository" "app_images" {
   location      = "asia-northeast1"
   repository_id = "platform-jobs"
-  description   = "Docker images for data platform jobs"
+  description   = "Docker images for GCP data platform jobs"
   format        = "DOCKER"
 }
