@@ -30,7 +30,7 @@ resource "google_artifact_registry_repository" "app_images" {
   format        = "DOCKER"
 }
 
-resource "google_service_account" "cloud_build_meta_ads" {
-  account_id   = "cloud-build-meta-ads"
-  display_name = "Cloud Build for Meta Ads"
+resource "google_service_account" "cloud_build_data_platform" {
+  account_id   = "cloud-build-data-platform"
+  display_name = "Cloud Build for Data Platform"
 }

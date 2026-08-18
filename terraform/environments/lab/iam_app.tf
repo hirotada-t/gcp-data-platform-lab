@@ -64,7 +64,7 @@ resource "google_service_account_iam_member" "github_deployer_act_as_meta_ads" {
 
 # github-deployer → 専用Cloud Build SA
 resource "google_service_account_iam_member" "github_deployer_act_as_build" {
-  service_account_id = google_service_account.cloud_build_meta_ads.name
+  service_account_id = google_service_account.cloud_build_data_platform.name
 
   role   = "roles/iam.serviceAccountUser"
   member = "serviceAccount:${google_service_account.github_deployer.email}"
@@ -96,17 +96,17 @@ resource "google_bigquery_dataset_iam_member" "meta_ads_data_editor" {
 }
 
 # Cloud Build SA → Artifact RegistryへImageをpush
-resource "google_artifact_registry_repository_iam_member" "cloud_build_meta_ads_writer" {
+resource "google_artifact_registry_repository_iam_member" "cloud_build_data_platform_writer" {
   project    = local.project_id
   location   = google_artifact_registry_repository.app_images.location
   repository = google_artifact_registry_repository.app_images.repository_id
 
   role   = "roles/artifactregistry.writer"
-  member = "serviceAccount:${google_service_account.cloud_build_meta_ads.email}"
+  member = "serviceAccount:${google_service_account.cloud_build_data_platform.email}"
 }
 
 # Cloud Build SA → source取得・build log保存
-resource "google_storage_bucket_iam_member" "cloud_build_meta_ads_storage" {
+resource "google_storage_bucket_iam_member" "cloud_build_data_platform_storage" {
   for_each = toset([
     "roles/storage.bucketViewer",
     "roles/storage.objectUser",
@@ -114,6 +114,6 @@ resource "google_storage_bucket_iam_member" "cloud_build_meta_ads_storage" {
 
   bucket = local.cloud_build_source_bucket
   role   = each.value
-  member = "serviceAccount:${google_service_account.cloud_build_meta_ads.email}"
+  member = "serviceAccount:${google_service_account.cloud_build_data_platform.email}"
 }
 
