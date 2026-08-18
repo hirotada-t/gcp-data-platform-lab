@@ -815,25 +815,39 @@ def dataframe_for_output(
 ) -> pd.DataFrame:
     frame = pd.DataFrame(rows)
     expected = list(dict.fromkeys(expected_columns or ()))
-    if frame.empty and expected:
-        return pd.DataFrame(
-            {
-                column: pd.Series(dtype=empty_column_dtype(column))
-                for column in expected
-            }
-        )
 
+    # 列がない場合はまず追加する
     for column in expected:
         if column not in frame.columns:
-            dtype = empty_column_dtype(column)
-            missing_value = math.nan if dtype == "float64" else pd.NA
-            frame[column] = pd.Series(
-                [missing_value] * len(frame),
-                dtype=dtype,
-            )
+            frame[column] = pd.NA
+
+    # 空データ・全NULLを含め、必ず規定型へ揃える
+    for column in expected:
+        dtype = empty_column_dtype(column)
+
+        if dtype == "float64":
+            frame[column] = pd.to_numeric(
+                frame[column],
+                errors="coerce",
+            ).astype("float64")
+
+        elif dtype == "Int64":
+            frame[column] = pd.to_numeric(
+                frame[column],
+                errors="coerce",
+            ).astype("Int64")
+
+        else:
+            frame[column] = frame[column].astype("string")
+
     if expected:
-        extras = [column for column in frame.columns if column not in expected]
+        extras = [
+            column
+            for column in frame.columns
+            if column not in expected
+        ]
         frame = frame[[*expected, *extras]]
+
     return frame
 
 
@@ -2831,5 +2845,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
-# CI/CD image deployment test
