@@ -20,7 +20,7 @@ env:
   REPOSITORY: platform-jobs
   IMAGE_NAME: meta-ads
   JOB_NAME: meta-ads-job
-  BUILD_SERVICE_ACCOUNT: cloud-build-meta-ads@gcp-test-504808.iam.gserviceaccount.com
+  BUILD_SERVICE_ACCOUNT: cloud-build-data-platform@gcp-test-504808.iam.gserviceaccount.com
 
 jobs:
   deploy:
